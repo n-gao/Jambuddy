@@ -3,6 +3,8 @@ import asyncio
 import json
 from methods import methods
 
+"""List containing all active connections
+"""
 connections = []
 
 """ Represents a Websocket connection; 
@@ -32,6 +34,7 @@ class WebsocketConnection:
         try:
             while True:
                 msg_obj = await self.produce()
+                print(msg_obj)
                 msg = json.dumps(msg_obj)
                 await self.socket.send(msg)
         except:
