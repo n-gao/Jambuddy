@@ -98,7 +98,9 @@ class Chronogram:
 
 
     def down_sample_frame(self):
+        pass
 
     def make_hamming_window(self):
+        pass
 
     
