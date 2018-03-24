@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Integer, Column, ForeignKey
+from sqlalchemy import Integer, Column, ForeignKey, String
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import operator
@@ -10,6 +10,7 @@ class Suggestion(Base):
     __tablename__ = 'suggestion'
     id = Column(Integer, primary_key=True)
     key = Column(Integer, nullable=False)
+    key_type = Column(String(255), nullable=False)
     notes = relationship('SuggestionNote', back_populates='suggestion')
 
     @property
@@ -22,4 +23,4 @@ class SuggestionNote(Base):
     suggestion_id = Column(Integer, ForeignKey('suggestion.id'), primary_key=True)
     suggestion = relationship('Suggestion', back_populates='notes')
     order = Column(Integer, primary_key=True)
-    note = Column(Integer)
+    note = Column(Integer, primary_key=True)

@@ -1,0 +1,6 @@
+numpy==1.14.2
+Pillow==5.0.0
+PyAudio==0.2.11
+pywin32==223
+SQLAlchemy==1.2.5
+websockets==4.0.1

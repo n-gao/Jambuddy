@@ -28,13 +28,17 @@ class SuggestionContext:
     Returns:
         Suggestion -- random suggestion which fits to the given key
     """
-    def get_random_suggestion(self, key):
-        return self.session.query(Suggestion).order_by(sqlalchemy.sql.expression.func.random()).first()
+    def get_random_suggestion(self, key, key_type):
+        return self.session.query(Suggestion)\
+            .filter(Suggestion.key == key)\
+            .filter(Suggestion.key_type == key_type)\
+            .order_by(sqlalchemy.sql.expression.func.random())\
+            .first()
 
     """Adds a suggestion to the database.
     """
-    def add_suggestion(self, key, notes):
-        new_suggestion = Suggestion(key=key)
+    def add_suggestion(self, key, key_type, notes):
+        new_suggestion = Suggestion(key=key, key_type=key_type)
         self.session.add(new_suggestion)
         for i in range(len(notes)):
             new_note = SuggestionNote(suggestion=new_suggestion, order=i, note=notes[i])
@@ -60,11 +64,15 @@ class SuggestionContext:
 def populateDatabase(db):
     for i in range(100):
         key = random.randint(0, 11)
-        penta = pentatonic.MajorPentatonic(key)
+        key_type = random.choice(['major', 'minor'])
+        if key_type == 'minor':
+            penta = pentatonic.MinorPentatonic(key)
+        else:
+            penta = pentatonic.MajorPentatonic(key)
         notes = []
         for j in range(4):
             notes.append(random.choice(penta.notes))
-        db.add_suggestion(key, notes)
+        db.add_suggestion(key, key_type, notes)
 
 """Test method to test all functionalities
 """
@@ -73,7 +81,9 @@ def test():
         db.create_database()
         if db.count == 0:
             populateDatabase(db)
-        print(db.get_random_suggestion(0).note_list)
+        notes = db.get_random_suggestion(0, 'major').note_list
+        print(notes)
+        print(list(map(pentatonic.get_note_name, notes)))
 
 if __name__ == '__main__':
     test()
