@@ -30,7 +30,6 @@ class WebsocketConnection:
         try:
             while True:
                 msg_obj = await self.produce()
-                print(msg_obj)
                 msg = json.dumps(msg_obj)
                 await self.socket.send(msg)
         except:
