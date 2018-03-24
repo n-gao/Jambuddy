@@ -8,7 +8,7 @@ async def get_bpm(msg_obj):
 
 async def get_suggestions(msg_obj):
     with SuggestionContext('sqlite:///test.db') as db:
-        return db.get_random_suggestion(0).note_list
+        return db.get_random_suggestion(0, 'major').note_list
 
 methods = {
     'get_key' : get_key,
