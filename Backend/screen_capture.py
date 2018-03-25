@@ -16,18 +16,16 @@ import re
 class ScreenCapture:
     def __init__(self, app_name):
         self.app_name = app_name
-
-    
-    def __enter__(self):
-        # Initialize windows stuff and allocate bitmap
         self.handle = win32gui.FindWindow(None, self.app_name)
         if self.handle == 0:
-            self.handle = _find_window_wildcard(self.app_name)
-        
+            self.handle = find_window_wildcard(self.app_name)
         self.left, self.top, self.right, self.bottom = win32gui.GetWindowRect(self.handle)
         self.width = self.right - self.left
         self.height = self.bottom - self.top
-        
+
+    
+    def __enter__(self):
+        # Initialize windows stuff and allocate bitmap        
         self.handle_dc = win32gui.GetWindowDC(self.handle)
         self.mfc_dc = win32ui.CreateDCFromHandle(self.handle_dc)
         self.save_dc = self.mfc_dc.CreateCompatibleDC()
@@ -70,7 +68,7 @@ def _window_enum_callback(hwnd, data):
         return False
 
 # Helper to use wildcards when finding windows
-def _find_window_wildcard(wildcard):
+def find_window_wildcard(wildcard):
     """find a window whose title matches the wildcard regex"""
     data = [wildcard, None]
     try:
