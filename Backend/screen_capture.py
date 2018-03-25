@@ -79,21 +79,11 @@ def _find_window_wildcard(wildcard):
         pass
     return data[1]
 
-"""Extracts the region where the chord is displayed from the given image.
-"""
-def get_chord_image(img):
-    return img.crop((190, 192, 340, 246))
-
-"""Extracts the region where the key is displayed from the given image.
-"""
-def get_key_image(img):
-    return img.crop((190, 260, 340, 312))
-
-"""Return true if both images are equal.
-"""
-def check_equality(im1, im2):
-    return ImageChops.difference(im1, im2).getbbox() is None
-
 if __name__ == '__main__':
     with ScreenCapture(".*VSTHost.*") as cap:
-        get_key_image(cap.capture()).show()
+        # while True:
+        #     key = input('Key: ')
+        #     key_img = get_key_image(cap.capture())
+        #     key_img.save('Keys/%s.png' % key)
+        cap.capture().show()
+        # cap.capture().crop((20, 240, 190, 400)).show()
