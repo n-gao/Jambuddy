@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Integer, Column, ForeignKey, String
+from sqlalchemy import Integer, Column, ForeignKey, String, Float
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import operator
@@ -24,3 +24,5 @@ class SuggestionNote(Base):
     suggestion = relationship('Suggestion', back_populates='notes')
     order = Column(Integer, primary_key=True)
     note = Column(Integer, primary_key=True)
+    sliding = Column(Integer)
+    delay = Column(Float)
