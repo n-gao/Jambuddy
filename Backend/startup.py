@@ -101,8 +101,10 @@ def main():
     bpm_thread.start()
 
     while True:
-        ws_server.send_to_all(get_info())
-        time.sleep(1/30)
+        to_send = get_info()
+        print(to_send)
+        ws_server.send_to_all(to_send)
+        time.sleep(1/2)
     server_thread._stop()
     reader_thread._stop()
 

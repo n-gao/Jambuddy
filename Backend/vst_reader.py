@@ -9,6 +9,7 @@ import win32api
 import win32con
 import math
 from pentatonic import _base_notes
+import pytesseract
 
 class VstReader:
     def __init__(self, exe_path = None, save_file = None, key_dir = './Keys'):
@@ -81,6 +82,11 @@ class VstReader:
         win32gui.SetForegroundWindow(previous)
         time.sleep(1/100)
 
+    def get_key_probabilities(self):
+        with self.capture:
+            img = get_key_probabilities_image(self.capture.capture())
+            img.show()
+
  
 """Extracts the region where the chord is displayed from the given image.
 """
@@ -92,6 +98,9 @@ def get_chord_image(img):
 def get_key_image(img):
     return img.crop((200, 260, 360, 312))
 
+def get_key_probabilities_image(img):
+    return img.crop((400, 260, 500, 340))
+
 """Return true if both images are equal.
 """
 def check_equality(im1, im2):
@@ -102,7 +111,7 @@ def get_rms(im1, im2):
     return math.sqrt(np.mean(np.square(diff)))
 
 if __name__ == '__main__':
-    VstReader('C:\\Users\\nicho\\\Desktop\\VSTHost\\vsthost.exe', 'C:\\Users\\nicho\\\Desktop\\VSTHost\\save.fxb').reset()
+    VstReader('./Keys').get_key_probabilities()
     while False:
         start = time.time()
         reader = VstReader('./Keys')
