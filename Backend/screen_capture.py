@@ -8,6 +8,9 @@ from PIL import Image, ImageChops
 import time
 import re
 
+WM_RBUTTONDOWN = 516
+WM_RBUTTONUP = 517
+
 """ Used to capture screenshots of applications.
     Usage: with ScreenCapture('VSTHost.*') as capture:
         img = capture.capture()
@@ -59,6 +62,26 @@ class ScreenCapture:
         result = Image.frombuffer('RGB', (bmpinfo['bmWidth'], bmpinfo['bmHeight'])
             , bmpstr, 'raw', 'BGRX', 0, 1)
         return result
+
+    def set_forground(self):
+        win32gui.SetForegroundWindow(self.handle)
+
+    def click(self, x, y, reset_window=True):
+        if x is not None and y is not None:
+            win32api.SetCursorPos((self.left + x, self.top + y))
+        if reset_window:
+            previous = win32gui.GetForegroundWindow()
+            self.set_forground()
+            time.sleep(1/100)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        # Replace that by correct code
+        if reset_window:
+            time.sleep(1/100)
+            win32gui.SetForegroundWindow(previous)
+        # lParam = (y << 16) | x
+        # win32gui.SendMessage(self.handle, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
+        # win32gui.SendMessage(self.handle, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, lParam)
 
 # Callback for iteration
 def _window_enum_callback(hwnd, data):
