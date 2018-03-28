@@ -37,11 +37,12 @@ class SuggestionContext:
 
     """Adds a suggestion to the database.
     """
-    def add_suggestion(self, key, key_type, notes):
+    def add_suggestion(self, key, key_type, notes, delays, slidings):
         new_suggestion = Suggestion(key=key, key_type=key_type)
         self.session.add(new_suggestion)
         for i in range(len(notes)):
-            new_note = SuggestionNote(suggestion=new_suggestion, order=i, note=notes[i])
+            new_note = SuggestionNote(suggestion=new_suggestion, order=i, note=notes[i],
+                                        sliding=slidings[i], delay=delays[i])
             self.session.add(new_note)
         self.session.commit()
 
@@ -64,15 +65,19 @@ class SuggestionContext:
 def populateDatabase(db):
     for i in range(100):
         key = random.randint(0, 11)
-        key_type = random.choice(['major', 'minor'])
-        if key_type == 'minor':
+        key_type = random.choice(['maj', 'min'])
+        if key_type == 'min':
             penta = pentatonic.MinorPentatonic(key)
         else:
             penta = pentatonic.MajorPentatonic(key)
         notes = []
+        delays = []
+        slidings = []
         for j in range(4):
             notes.append(random.choice(penta.notes))
-        db.add_suggestion(key, key_type, notes)
+            delays.append(random.random() * 2 + 0.5)
+            slidings.append('N')
+        db.add_suggestion(key, key_type, notes, delays, slidings)
 
 """Test method to test all functionalities
 """
@@ -81,7 +86,7 @@ def test():
         db.create_database()
         if db.count == 0:
             populateDatabase(db)
-        notes = db.get_random_suggestion(0, 'major').note_list
+        notes = db.get_random_suggestion(0, 'maj').note_list
         print(notes)
         print(list(map(pentatonic.get_note_name, notes)))
 

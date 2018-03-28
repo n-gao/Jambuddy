@@ -24,5 +24,5 @@ class SuggestionNote(Base):
     suggestion = relationship('Suggestion', back_populates='notes')
     order = Column(Integer, primary_key=True)
     note = Column(Integer, primary_key=True)
-    sliding = Column(Integer)
+    sliding = Column(String(255))
     delay = Column(Float)

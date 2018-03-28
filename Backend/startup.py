@@ -3,44 +3,85 @@ import server
 import time
 from vst_reader import VstReader
 from bpm import BpmDetector
+from suggestion_context import SuggestionContext
+from pentatonic import get_note_name
+import operator
+from collections import deque
+
+class PlaySuggestion:
+    def __init__(self, sugg, bpm, time, key):
+        self.time = time
+        self.bpm = bpm
+        self.sugg = sugg
+        self.key = key
+        self.notes = self.sugg.note_list
+        self.times = []
+        last_t = self.time
+        for n in self.sugg.notes:
+            last_t = last_t + n.delay * 60/self.bpm
+            self.times.append(last_t)
+        self.note_names = list(map(get_note_name, self.notes))
+
+    @property
+    def last_note(self):
+        return self.times[-1]
+
+def check_suggestions(key_note, key_note_name, key_type, bpm, time):
+    while len(suggestions) > 0 and (suggestions[0].last_note < time
+        or suggestions[0].key != key_note_name):
+        suggestions.pop()
+    t_ = time
+    while len(suggestions) < 10:
+        with SuggestionContext('sqlite:///test.db') as db:
+            sugg = db.get_random_suggestion(key_note, key_type)
+            p_sugg = PlaySuggestion(sugg, bpm, t_, key_note_name)
+            t_ = p_sugg.last_note
+            suggestions.append(p_sugg)
+
+def format_suggestions(to_format, time):
+    notes = []
+    note_names = []
+    times = []
+    suggs = []
+    for sugg in to_format:
+        for i in range(len(sugg.notes)):
+            if sugg.times[i] >= time:
+                note = sugg.notes[i]
+                note_name = sugg.note_names[i]
+                _time = sugg.times[i]
+                suggs.append({
+                    'note' : note,
+                    'note_name' : note_name,
+                    'time' : _time
+                })
+                notes.append(note)
+                note_names.append(note_name)
+                times.append(_time)
+    return notes, note_names, times, suggs
+
 
 def get_info():
     key_note, key_note_name, key_type = reader.get_key()
+    bpm = bpm_d.get_bpm()
+    t = time.time()
+    check_suggestions(key_note, key_note_name, key_type, bpm, t)
+    to_transmit = list(suggestions)[:3]
+    notes, note_names, times, suggs = format_suggestions(to_transmit, t)
     return {
-        'speed' : bpm_d.get_bpm(),
+        'speed' : bpm,
         'key_note' : key_note,
         'key_note_name' : key_note_name,
         'key_type' : key_type,
-        'time' : time.time(),
-        'suggestion' : [
-            {
-                'note' : 53,
-                'note_name' : 'D5',
-                'time' : 0.25
-            },
-            {
-                'note' : 58,
-                'note_name' : 'G5',
-                'time' : 0.5
-            },
-            {
-                'note' : 29,
-                'note_name' : 'D3',
-                'time' : 0.75
-            },
-            {
-                'note' : 27,
-                'note_name' : 'C3',
-                'time' : 1
-            }
-        ],
+        'time' : t,
+        'suggestion' : suggs,
         # OR
-        'suggestion_notes' : [53, 58, 29, 27],
-        'suggestion_note_names' : ['D5', 'G5', 'D3', 'C3'],
-        'suggestion_times' : [0.25, 0.5, 0.75, 1]
+        'suggestion_notes' : notes,
+        'suggestion_note_names' : note_names,
+        'suggestion_times' : times
     }
 
 ws_server, reader, bpm_d = None, None, None
+suggestions = deque()
 
 def main():
     global ws_server, reader, bpm_d
@@ -61,8 +102,6 @@ def main():
 
     while True:
         ws_server.send_to_all(get_info())
-        print(reader.get_key())
-        print(bpm_d.get_bpm())
         time.sleep(1/30)
     server_thread._stop()
     reader_thread._stop()
