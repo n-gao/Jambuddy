@@ -55,4 +55,4 @@ def get_random_chord(key):
     try:
         return random.choice(_key_to_chords[key_type][key_note])
     except:
-        return []
+        return None
