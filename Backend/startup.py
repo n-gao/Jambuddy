@@ -118,7 +118,7 @@ def get_info():
             key_note, key_note_name, key_type = None, None, None
     else:
         key_note, key_type = current_key
-        key_note_name = pentatonic._base_notes[key_note]
+        key_note_name = pentatonic.ind_to_note[key_note]
     keys = reader.get_key_probabilities()
     bpm = bpm_d.get_bpm() if override_bpm is None else override_bpm
     t = time.time()
