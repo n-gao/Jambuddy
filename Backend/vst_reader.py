@@ -113,6 +113,8 @@ class VstReader:
                 if len(key_str) == 0:
                     continue
                 parts = key_str.split(' ')
+                if len(parts) < 3:
+                    continue
                 result.append({
                     'key_note' : _base_notes[parts[0]],
                     'key_name' : parts[0],

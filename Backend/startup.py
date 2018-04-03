@@ -11,7 +11,7 @@ import pentatonic
 from chord_suggestion import get_random_chord
 import random
 
-override_bpm = 30
+override_bpm = None
 current_key = None
 difficulty = 0
 
