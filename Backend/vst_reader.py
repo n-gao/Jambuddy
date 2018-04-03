@@ -36,7 +36,7 @@ class VstReader:
     def get_key(self):
         try:
             key = self.probabilities[0]
-            return key['key'], key['key_name'], key['key_type']
+            return key['key_note'], key['key_name'], key['key_type']
         except:
             return None
 

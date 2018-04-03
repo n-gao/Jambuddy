@@ -21,6 +21,7 @@ _base_notes = {
     'Bb':10,
     'B' :11
 }
+ind_to_note = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 note_names = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
 def get_note_name(index):
     if index != -1:
