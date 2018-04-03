@@ -35,8 +35,8 @@ class VstReader:
 
     def get_key(self):
         try:
+            key = self.probabilities[0]
             return key['key'], key['key_name'], key['key_type']
-            # return _base_notes[self.key_name[:-3]], self.key_name[:-3], self.key_name[-3:]
         except:
             return None
 
@@ -65,7 +65,10 @@ class VstReader:
     def continously_read(self, interval = 0.2):
         while True:
             # self.key_name, _, _ = self.read_key()
-            self.read_key_probabilities()
+            try:
+                self.read_key_probabilities()
+            except:
+                pass
             time.sleep(interval)
 
     def reset(self):
@@ -81,7 +84,7 @@ class VstReader:
         self.capture.click(300, 40, False)
         time.sleep(1/100)
         self.capture.click(300, 80, False)
-        time.sleep(1/3)
+        time.sleep(1/2)
         self.capture.click(None, None, False)
         time.sleep(1/100)
         win32gui.SetForegroundWindow(previous)
@@ -111,7 +114,7 @@ class VstReader:
                     continue
                 parts = key_str.split(' ')
                 result.append({
-                    'key' : _base_notes[parts[0]],
+                    'key_note' : _base_notes[parts[0]],
                     'key_name' : parts[0],
                     'key_type' : parts[1],
                     'probability' : int(parts[2][1:-2])/100

@@ -1,16 +1,16 @@
 import websockets as ws
 import asyncio
 import json
-from methods import methods
 
 """ Represents a Websocket connection; 
     has a queue of messages which will be sent
 """
 class WebsocketConnection:
-    def __init__(self, websocket, path):
+    def __init__(self, websocket, path, server):
         self.socket = websocket
         self.path = path
         self.queue = asyncio.Queue()
+        self.server = server
 
 
     """ forwards incoming messages to 'consume'
@@ -54,7 +54,7 @@ class WebsocketConnection:
             return
         # Try calling the specified method
         try:
-            result = await methods[msg_obj['method']](msg_obj)
+            result = await self.server.methods[msg_obj['method']](msg_obj['args'])
             if result is not None:
                 await self.queue.put(result)
         except:
@@ -80,10 +80,11 @@ class WebsocketConnection:
 
 
 class WebsocketServer:
-    def __init__(self, port):
+    def __init__(self, port, methods):
         self.port = port
         self.connections = []
         self.running = False
+        self.methods = methods
 
     """Start the websocket server
     """
@@ -108,7 +109,7 @@ class WebsocketServer:
     """
     async def handler(self, websocket, path):
         #Create new WebsocketConnection
-        connection = WebsocketConnection(websocket, path)
+        connection = WebsocketConnection(websocket, path, self)
         self.connections.append(connection)
         address = websocket.remote_address[0]
         print('Established a connection to %s' % address)

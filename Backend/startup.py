@@ -13,64 +13,70 @@ override_bpm = None
 current_key = None
 difficulty = 0
 
-class PlaySuggestion:
-    def __init__(self, sugg, bpm, time, key):
-        self.time = time
+ws_server, reader, bpm_d = None, None, None
+suggestions = deque()
+
+num_suggestions = 12
+
+last_id = 0
+
+class SuggestionNote:
+    def __init__(self, note, bpm, time, key):
+        global last_id
+        self.id = last_id + 1
+        last_id = last_id + 1
         self.bpm = bpm
-        self.sugg = sugg
+        self.note = note
+        self.note_name = pentatonic.get_note_name(self.note)
+        self.time_to_play = time_to_play
         self.key = key
-        self.notes = self.sugg.note_list
-        self.times = []
-        last_t = self.time
-        for n in self.sugg.notes:
-            last_t = last_t + n.delay * 60/self.bpm
-            self.times.append(last_t)
-        self.note_names = list(map(get_note_name, self.notes))
 
-    @property
-    def last_note(self):
-        return self.times[-1]
-
-def check_suggestions(key_note, key_note_name, key_type, bpm, time):
-    while len(suggestions) > 0 and (suggestions[0].last_note < time
-        or suggestions[0].key != key_note_name):
+def get_suggestions(key, bpm, time):
+    while len(suggestions) > 0 and (suggestions[0].time_to_play < time
+        or suggestions[0].key != key):
         suggestions.pop()
     t_ = time
-    while len(suggestions) < 10:
-        with SuggestionContext('sqlite:///test.db') as db:
-            sugg = db.get_random_suggestion(key_note, key_type)
-            p_sugg = PlaySuggestion(sugg, bpm, t_, key_note_name)
-            t_ = p_sugg.last_note
-            suggestions.append(p_sugg)
+    with SuggestionContext('sqlite:///test.db') as db:
+        while len(suggestions) < num_suggestions:
+            sugg = db.get_random_suggestion(key[0], key[1])
+            if sugg == None:
+                return []
+            for note in sugg.notes:
+                t_ = t_ + note.delay * 60/bpm
+                suggestions.append(SuggestionNote(
+                    note.note,
+                    bpm,
+                    t_,
+                    key
+                ))
+    return list(suggestions)[:num_suggestions]
 
-def format_suggestions(to_format, time):
+def format_suggestions(to_format):
     suggs = []
     for sugg in to_format:
-        for i in range(len(sugg.notes)):
-            if sugg.times[i] >= time:
-                note = sugg.notes[i]
-                note_name = sugg.note_names[i]
-                _time = sugg.times[i]
-                suggs.append({
-                    'note' : note,
-                    'note_name' : note_name,
-                    'time' : _time
-                })
+        suggs.append({
+            'id' : sugg.id,
+            'note' : sugg.note,
+            'note_name' : sugg.note_name,
+            'time_to_play' : sugg.time_to_play
+        })
     return suggs
 
 
 def get_info():
     if current_key is None:
-        key_note, key_note_name, key_type = reader.get_key()
+        try:
+            key_note, key_note_name, key_type = reader.get_key()
+        except:
+            key_note, key_note_name, key_type = None, None, None
     else:
         key_note, key_type = current_key
         key_note_name = pentatonic._base_notes[key_note]
     keys = reader.get_key_probabilities()
     bpm = bpm_d.get_bpm() if override_bpm is None else override_bpm
     t = time.time()
-    check_suggestions(key_note, key_note_name, key_type, bpm, t)
-    to_transmit = list(suggestions)[:3]
-    notes, note_names, times, suggs = format_suggestions(to_transmit, t)
+    to_transmit = get_suggestions((key_note, key_type), bpm, t)
+    suggs = format_suggestions(to_transmit)
     return {
         'bpm' : bpm,
         'keys' : keys,
@@ -79,32 +85,43 @@ def get_info():
             'key_type' : key_type,
             'key_name' : key_note_name,
             'probability' : 1
-        }
+        },
         'time' : t,
         'difficulty' : difficulty,
         'suggestion_notes' : suggs,
         'suggestion_chords' : []
     }
 
-ws_server, reader, bpm_d = None, None, None
-suggestions = deque()
-
 async def set_difficulty(args):
     global difficulty
     difficulty = args['difficulty']
+    return True
 
 async def set_bpm(args):
     global bpm
-    bpm = args['bpm']
+    try:
+        bpm = args['bpm']
+    except:
+        return False
+    return True
 
 async def set_key(args):
     global key
-    key = (args['key_note'], args['key_type'])
+    try:
+        key = (args['key_note'], args['key_type'])
+    except:
+        return False
+    return True
 
+methods = {
+    'set_difficulty' : set_difficulty,
+    'set_bpm' : set_bpm,
+    'set_key' : set_key
+}
 
 def main():
-    global ws_server, reader, bpm_d
-    ws_server = server.WebsocketServer(8888)
+    global ws_server, reader, bpm_d, methods
+    ws_server = server.WebsocketServer(8888, methods)
     server_thread = threading.Thread(target=ws_server.start)
     server_thread.start()
 
