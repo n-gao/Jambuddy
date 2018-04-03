@@ -44,6 +44,7 @@ Chord:
 {
     "id" : int,
     "chord" : int,
+    "chord_type" : String,
     "chord_name" : String,
     "time_to_play" : float
 }
