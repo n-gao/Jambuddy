@@ -9,11 +9,11 @@ ws://localhost:8888
 You get this information block 10 times per second:
 ```
 {
-    "speed" : float,
-    "keys : Key[],
+    "bpm" : float,
+    "keys" : Key[],
     "current_key" : Key,
     "time" : float,
-    "difficulty" : String,
+    "difficulty" : ENUM(0: Beginner, 1: Advanced),
     "suggestion_notes" : Note[],
     "suggestion_chords" : Chord[]
 }
@@ -25,7 +25,7 @@ Key:
     "key_note" : int,
     "key_name" : String,
     "key_type" : String,
-    "probabilitiy" : float
+    "probability" : float
 }
 ```
 
@@ -35,7 +35,7 @@ Note:
     "id" : int,
     "note" : int,
     "note_name"  : String,
-    "time" : float
+    "time_to_play" : float
 }
 ```
 
@@ -45,7 +45,7 @@ Chord:
     "id" : int,
     "chord" : int,
     "chord_name" : String,
-    "time" : float
+    "time_to_play" : float
 }
 ```
 

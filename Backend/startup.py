@@ -2,11 +2,16 @@ import threading
 import server
 import time
 from vst_reader import VstReader
-from bpm import BpmDetector
+from bpm_detector import BpmDetector
 from suggestion_context import SuggestionContext
 from pentatonic import get_note_name
 import operator
 from collections import deque
+import pentatonic
+
+override_bpm = None
+current_key = None
+difficulty = 0
 
 class PlaySuggestion:
     def __init__(self, sugg, bpm, time, key):
@@ -39,9 +44,6 @@ def check_suggestions(key_note, key_note_name, key_type, bpm, time):
             suggestions.append(p_sugg)
 
 def format_suggestions(to_format, time):
-    notes = []
-    note_names = []
-    times = []
     suggs = []
     for sugg in to_format:
         for i in range(len(sugg.notes)):
@@ -54,32 +56,51 @@ def format_suggestions(to_format, time):
                     'note_name' : note_name,
                     'time' : _time
                 })
-                notes.append(note)
-                note_names.append(note_name)
-                times.append(_time)
-    return notes, note_names, times, suggs
+    return suggs
 
 
 def get_info():
-    key_note, key_note_name, key_type = reader.get_key()
+    if current_key is None:
+        key_note, key_note_name, key_type = reader.get_key()
+    else:
+        key_note, key_type = current_key
+        key_note_name = pentatonic._base_notes[key_note]
     keys = reader.get_key_probabilities()
-    bpm = bpm_d.get_bpm()
+    bpm = bpm_d.get_bpm() if override_bpm is None else override_bpm
     t = time.time()
     check_suggestions(key_note, key_note_name, key_type, bpm, t)
     to_transmit = list(suggestions)[:3]
     notes, note_names, times, suggs = format_suggestions(to_transmit, t)
     return {
-        'speed' : bpm,
-        'keys' : keys
-        'key_note' : key_note,
-        'key_note_name' : key_note_name,
-        'key_type' : key_type,
+        'bpm' : bpm,
+        'keys' : keys,
+        'current_key' : {
+            'key_note' : key_note,
+            'key_type' : key_type,
+            'key_name' : key_note_name,
+            'probability' : 1
+        }
         'time' : t,
-        'suggestion' : suggs
+        'difficulty' : difficulty,
+        'suggestion_notes' : suggs,
+        'suggestion_chords' : []
     }
 
 ws_server, reader, bpm_d = None, None, None
 suggestions = deque()
+
+async def set_difficulty(args):
+    global difficulty
+    difficulty = args['difficulty']
+
+async def set_bpm(args):
+    global bpm
+    bpm = args['bpm']
+
+async def set_key(args):
+    global key
+    key = (args['key_note'], args['key_type'])
+
 
 def main():
     global ws_server, reader, bpm_d
