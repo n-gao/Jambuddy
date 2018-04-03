@@ -10,6 +10,8 @@ import win32con
 import math
 from pentatonic import _base_notes
 import pytesseract
+import cv2
+import re
 
 class VstReader:
     def __init__(self, exe_path = None, save_file = None, key_dir = './Keys'):
@@ -29,10 +31,12 @@ class VstReader:
         for i in range(len(self.files)):
             self.images[self.files[i][:-4]] = Image.open(self.file_paths[i])
         self.key_name = 'Cmaj'
+        self.probabilities = []
 
     def get_key(self):
         try:
-            return _base_notes[self.key_name[:-3]], self.key_name[:-3], self.key_name[-3:]
+            return key['key'], key['key_name'], key['key_type']
+            # return _base_notes[self.key_name[:-3]], self.key_name[:-3], self.key_name[-3:]
         except:
             return None
 
@@ -60,7 +64,8 @@ class VstReader:
 
     def continously_read(self, interval = 0.2):
         while True:
-            self.key_name, _, _ = self.read_key()
+            # self.key_name, _, _ = self.read_key()
+            self.read_key_probabilities()
             time.sleep(interval)
 
     def reset(self):
@@ -83,9 +88,37 @@ class VstReader:
         time.sleep(1/100)
 
     def get_key_probabilities(self):
+        return self.probabilities
+
+    def read_key_probabilities(self):
         with self.capture:
+            s = time.time()
             img = get_key_probabilities_image(self.capture.capture())
-            img.show()
+            w, h = img.width, img.height
+            img = img.resize((w * 3, h * 3), 1)
+
+            gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+            gray = cv2.threshold(gray, 0, 255,
+                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+
+            img = Image.fromarray(cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB))
+            img_str = pytesseract.image_to_string(img)
+
+            keys = img_str.split('\n')
+            result = []
+            for key_str in keys:
+                if len(key_str) == 0:
+                    continue
+                parts = key_str.split(' ')
+                result.append({
+                    'key' : _base_notes[parts[0]],
+                    'key_name' : parts[0],
+                    'key_type' : parts[1],
+                    'probability' : int(parts[2][1:-2])/100
+                })
+            self.probabilities = result
+            return result
+            
 
  
 """Extracts the region where the chord is displayed from the given image.
@@ -111,7 +144,7 @@ def get_rms(im1, im2):
     return math.sqrt(np.mean(np.square(diff)))
 
 if __name__ == '__main__':
-    VstReader('./Keys').get_key_probabilities()
+    print(VstReader('./Keys').read_key_probabilities())
     while False:
         start = time.time()
         reader = VstReader('./Keys')

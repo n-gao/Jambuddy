@@ -62,6 +62,7 @@ def format_suggestions(to_format, time):
 
 def get_info():
     key_note, key_note_name, key_type = reader.get_key()
+    keys = reader.get_key_probabilities()
     bpm = bpm_d.get_bpm()
     t = time.time()
     check_suggestions(key_note, key_note_name, key_type, bpm, t)
@@ -69,15 +70,12 @@ def get_info():
     notes, note_names, times, suggs = format_suggestions(to_transmit, t)
     return {
         'speed' : bpm,
+        'keys' : keys
         'key_note' : key_note,
         'key_note_name' : key_note_name,
         'key_type' : key_type,
         'time' : t,
-        'suggestion' : suggs,
-        # OR
-        'suggestion_notes' : notes,
-        'suggestion_note_names' : note_names,
-        'suggestion_times' : times
+        'suggestion' : suggs
     }
 
 ws_server, reader, bpm_d = None, None, None
@@ -102,7 +100,6 @@ def main():
 
     while True:
         to_send = get_info()
-        print(to_send)
         ws_server.send_to_all(to_send)
         time.sleep(1/2)
     server_thread._stop()
