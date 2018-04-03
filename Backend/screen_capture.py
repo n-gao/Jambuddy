@@ -46,7 +46,7 @@ class ScreenCapture:
         self.mfc_dc.DeleteDC()
         win32gui.ReleaseDC(self.handle, self.handle_dc)
         if exc_type:
-            raise exc_type(exc_value)
+            raise exc_type(exc_value, message='hi')
 
     """Captures a screenshot of the given application and returns it as PIL Image.
     Returns:

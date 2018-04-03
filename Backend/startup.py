@@ -71,7 +71,7 @@ def get_note_suggestions(key, bpm, time):
     while len(sugg_notes) > 0 and (sugg_notes[0].time_to_play < time
         or sugg_notes[0].key != key):
         sugg_notes.popleft()
-    t_ = sugg_notes[-1].time_to_play if len(sugg_chords) > 0 else time
+    t_ = sugg_notes[-1].time_to_play if len(sugg_notes) > 0 else time
     if not all(key):
         return []
     with SuggestionContext('sqlite:///test.db') as db:
@@ -159,9 +159,9 @@ async def set_bpm(args):
     return True
 
 async def set_key(args):
-    global key
+    global current_key
     try:
-        key = (args['key_note'], args['key_type'])
+        current_key = (args['key_note'], args['key_type'])
     except:
         return False
     return True
