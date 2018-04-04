@@ -73,10 +73,13 @@ def populateDatabase(db):
         notes = []
         delays = []
         slidings = []
-        for j in range(4):
+        for j in range(3):
             notes.append(random.choice(penta.notes))
-            delays.append(random.random() * 2 + 0.5)
+            delays.append(1)
             slidings.append('N')
+        notes.append(random.choice(penta.base_notes))
+        delays.append(1)
+        slidings.append('N')
         db.add_suggestion(key, key_type, notes, delays, slidings)
 
 """Test method to test all functionalities

@@ -39,7 +39,7 @@ class Pentatonic:
         else:
             raise ValueError('base_note must be a string or a integer.')
         self.lowest_note = 20
-        self.highest_note = 66
+        self.highest_note = 50
         self.offsets = []
         self.notes = []
 
@@ -54,6 +54,10 @@ class Pentatonic:
                 if note > self.highest_note:
                     continue
                 self.notes.append(note)
+        self.base_notes = []
+        for i in range(self.highest_note//12):
+            self.base_notes.append(self.base_note + i*12)
+
         
 class MajorPentatonic(Pentatonic):
     def __init__(self, base_note):
