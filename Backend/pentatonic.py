@@ -56,7 +56,10 @@ class Pentatonic:
                 self.notes.append(note)
         self.base_notes = []
         for i in range(self.highest_note//12):
-            self.base_notes.append(self.base_note + i*12)
+            note = self.base_note + 3 + i*12
+            if note < self.lowest_note or note > self.highest_note:
+                continue
+            self.base_notes.append(note)
 
         
 class MajorPentatonic(Pentatonic):
