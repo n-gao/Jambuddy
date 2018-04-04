@@ -11,7 +11,7 @@ import pentatonic
 from chord_suggestion import get_random_chord
 import random
 
-override_bpm = 30
+override_bpm = None
 current_key = None
 difficulty = 0
 
@@ -71,10 +71,7 @@ def get_note_suggestions(key, bpm, time):
     while len(sugg_notes) > 0 and (sugg_notes[0].time_to_play < time
         or sugg_notes[0].key != key):
         sugg_notes.popleft()
-    if len(sugg_chords) > 0:
-        t_ = sugg_notes[-1]
-    else:
-        t_ = time
+    t_ = sugg_notes[-1].time_to_play if len(sugg_notes) > 0 else time
     if not all(key):
         return []
     with SuggestionContext('sqlite:///test.db') as db:
@@ -121,7 +118,7 @@ def get_info():
             key_note, key_note_name, key_type = None, None, None
     else:
         key_note, key_type = current_key
-        key_note_name = pentatonic._base_notes[key_note]
+        key_note_name = pentatonic.ind_to_note[key_note]
     keys = reader.get_key_probabilities()
     bpm = bpm_d.get_bpm() if override_bpm is None else override_bpm
     t = time.time()
@@ -162,9 +159,9 @@ async def set_bpm(args):
     return True
 
 async def set_key(args):
-    global key
+    global current_key
     try:
-        key = (args['key_note'], args['key_type'])
+        current_key = (args['key_note'], args['key_type'])
     except:
         return False
     return True
