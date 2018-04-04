@@ -28,7 +28,7 @@ class SuggestionChord:
         global last_id
         self.id = last_id + 1
         last_id = last_id + 1
-        self.chord, self.chord_type = chord
+        self.chord_type, self.chord = chord
         self.chord_name = pentatonic.ind_to_note[self.chord]
         self.time_to_play = time_to_play
         self.key = key

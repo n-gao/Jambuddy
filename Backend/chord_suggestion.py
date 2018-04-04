@@ -54,13 +54,16 @@ _offsets = {
     'maj' : [0, 2, 4, 5, 7, 9],
     'min' : [0, 3, 5, 7, 8, 10]
 }
-_types : {
+
+_types = {
     'maj' : ['maj', 'min', 'min', 'maj', 'maj', 'min'],
     'min' : ['min', 'maj', 'min', 'min', 'maj', 'maj']
 }
+
 def get_random_chord(key):
     key_note, key_type = key
-    try:
-        return random.choice(_types[key_type], _key_note + _offsets[key_type])
-    except:
-        return None
+    # try:
+    return (random.choice(_types[key_type]), (key_note + random.choice(_offsets[key_type])) % 12)
+    # except:
+    #     print("wtf")
+    #     return None
