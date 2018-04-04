@@ -52,17 +52,21 @@ def get_chord_suggestions(key, bpm, time):
     if key[0] is None:
         return []
     while len(sugg_chords) < num_suggestions:
-        chord = get_random_chord(key)
-        if chord is None:
-            return []
+        chords = []
+        for i in range(4):
+            chord = get_random_chord(key)
+            if chord is None:
+                return []
+            chords.append(chord)
         delay = 1
         for i in range(4):
             t_ = t_ + delay * 60/bpm
-            sugg_chords.append(SuggestionChord(
-                chord,
-                t_,
-                key
-            ))
+            for chord in chords:
+                sugg_chords.append(SuggestionChord(
+                    chord,
+                    t_,
+                    key
+                ))
     return list(sugg_chords)[:num_suggestions]
 
 
@@ -77,13 +81,14 @@ def get_note_suggestions(key, bpm, time):
     with SuggestionContext('sqlite:///test.db') as db:
         while len(sugg_notes) < num_suggestions:
             sugg = db.get_random_suggestion(key[0], key[1])
-            for note in sugg.notes:
-                t_ = t_ + note.delay * 60/bpm
-                sugg_notes.append(SuggestionNote(
-                    note.note,
-                    t_,
-                    key
-                ))
+            for i in range(4):
+                for note in sugg.notes:
+                    t_ = t_ + note.delay * 60/bpm
+                    sugg_notes.append(SuggestionNote(
+                        note.note,
+                        t_,
+                        key
+                    ))
     return list(sugg_notes)[:num_suggestions]
 
 def format_note_suggestions(to_format):
