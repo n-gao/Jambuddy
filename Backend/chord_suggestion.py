@@ -63,8 +63,8 @@ _types = {
 def get_random_chord(key):
     key_note, key_type = key
     # try:
-    ind = random.randint(0, len(_offsets))
-    return (_types[key_type][ind], (key_note + random.choice(_offsets[key_type])[0]) % 12)
+    ind = random.randint(0, len(_offsets[key_type]) - 1)
+    return (_types[key_type][ind], (key_note + _offsets[key_type][ind]) % 12)
     # except:
     #     print("wtf")
     #     return None
