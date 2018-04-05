@@ -11,7 +11,7 @@ import pentatonic
 from chord_suggestion import get_random_chord
 import random
 
-override_bpm = None
+override_bpm = 75
 current_key = None
 difficulty = 0
 
@@ -19,7 +19,7 @@ ws_server, reader, bpm_d = None, None, None
 sugg_notes = deque()
 sugg_chords = deque()
 
-num_suggestions = 12
+num_suggestions = 16
 
 last_id = 0
 
@@ -60,8 +60,8 @@ def get_chord_suggestions(key, bpm, time):
             chords.append(chord)
         delay = 1
         for i in range(4):
-            t_ = t_ + delay * 60/bpm
             for chord in chords:
+                t_ = t_ + delay * 60/bpm
                 sugg_chords.append(SuggestionChord(
                     chord,
                     t_,
