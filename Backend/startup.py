@@ -39,7 +39,7 @@ class SuggestionNote:
         self.id = last_id + 1
         last_id = last_id + 1
         self.note = note
-        self.note_name = pentatonic.get_note_name(self.note)
+        self.note_name = pentatonic.get_note_name(self.note - 1)
         self.time_to_play = time_to_play
         self.key = key
 
@@ -69,6 +69,27 @@ def get_chord_suggestions(key, bpm, time):
                 ))
     return list(sugg_chords)[:num_suggestions]
 
+def get_riff(key):
+    key_note, key_type = key
+    _bases = {
+        'maj' : 0,
+        'min' : 9
+    }
+    riffs = [
+        [49, 44, 47, 49],
+        [49, 44, 52, 49],
+        [49, 47, 44, 37]
+    ]
+    base = _bases[key_type]
+    diff = (key_note - base) % 12
+    if diff != 0:
+        diff = diff - 12
+    result = []
+    riff = random.choice(riffs)
+    for n in riff:
+        result.append(n + diff)
+    return result
+
 
 def get_note_suggestions(key, bpm, time):
     global sugg_notes
@@ -76,16 +97,25 @@ def get_note_suggestions(key, bpm, time):
         or sugg_notes[0].key != key):
         sugg_notes.popleft()
     t_ = sugg_notes[-1].time_to_play if len(sugg_notes) > 0 else time
-    if not all(key):
+    if key is None or key[0] is None or key[1] is None:
         return []
     with SuggestionContext('sqlite:///test.db') as db:
         while len(sugg_notes) < num_suggestions:
-            sugg = db.get_random_suggestion(key[0], key[1])
+            # sugg = db.get_random_suggestion(key[0], key[1])
+            # for i in range(4):
+            #     for note in sugg.notes:
+            #         t_ = t_ + note.delay * 60/bpm
+            #         sugg_notes.append(SuggestionNote(
+            #             note.note,
+            #             t_,
+            #             key
+            #         ))
+            sugg = get_riff(key)
             for i in range(4):
-                for note in sugg.notes:
-                    t_ = t_ + note.delay * 60/bpm
+                for note in sugg:
+                    t_ = t_ + 60/bpm
                     sugg_notes.append(SuggestionNote(
-                        note.note,
+                        note,
                         t_,
                         key
                     ))
